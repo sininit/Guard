@@ -58,7 +58,7 @@ def Guard_name():
           db_sleep = cf.get("setting", "sleep")#读取配置中的检测延迟
           #cf.set("baseconf", "db_pass", "123456")
           #cf.write(open("config_file_path", "w"))
-    name_ = str(db_name)
+    name = str(db_name)
     #---------------
     cd = str(db_cd)#到文本 挂载目录
     if cd == "":
@@ -72,48 +72,59 @@ def Guard_name():
     if shell_method != "subprocess" and shell_method != "os":
         shell_method == "commands"
     #---------------
-    cx_shell = 'ps -ef | grep '+name_+' | grep -v grep'
+    cx_shell = 'ps -ef | grep '+name+' | grep -v grep'
     
     if shell_method == "subprocess":
-        sb = subprocess.Popen(cx_shell,shell=True)
-        sb = sb.communicate()
+        sb = subprocess.call(cx_shell,shell=True)
     elif shell_method == "commands":
         sb = commands.getstatusoutput(cx_shell)
     else:
         sb = os.system(cx_shell)
     sb_ = str(sb)
-    #<subprocess.Popen object at 0x7f6ea5935310>
+    #subprocess成功反回0
     #commands如果没有结果他会返回(256, '')
     #os空白会返回256
-    if sb_ == "(256, \'\')" and  shell_method == "commands":
-        print '与进程名匹配的进程不存在'
-        exit()
-    elif sb_.startswith("<subprocess.Popen object at 0x"):
-        print '与进程名匹配的进程不存在'
-        exit()
-    elif sb_ == "256" and shell_method == "os":
-        print '与进程名匹配的进程不存在'
-        exit()
+    if shell_method == "commands":
+        if sb_ == "(256, \'\')":
+            print '与进程名匹配的进程不存在'
+            exit()
+    elif shell_method == "subprocess":
+        if sb_ == "1" or sb_ == "256":
+            print '与进程名匹配的进程不存在'
+            exit()
+    elif shell_method == "os":
+        if sb_ == "256":
+            print '与进程名匹配的进程不存在'
+            exit()
     else:
         print '进程名存在开启守护'
     yc = int(db_sleep)
     while 1:
         if shell_method == "subprocess":
-            sb = subprocess.Popen(cx_shell,shell=True)
-            sb.communicate()
+            sb = subprocess.call(cx_shell,shell=True)
         elif shell_method == "commands":
             sb = commands.getstatusoutput(cx_shell)
         else:
             sb = os.system(cx_shell)
         sb_ = str(sb)
-        if sb_ == "(256, \'\')" and  shell_method == "commands":
-            jieguo = "no"
-        elif sb_.startswith("<subprocess.Popen object at 0x"):
-            jieguo = "no"
-        elif sb_ == "256" and shell_method == "os":
-            jieguo = "no"
+        if shell_method == "commands":
+            if sb_ == "(256, \'\')":
+                jieguo = "no"
+            else:
+                jieguo = "yes"
+        elif shell_method == "subprocess":
+            if sb_ == "1" or sb_ == "256":
+                jieguo = "no"
+            else:
+                jieguo = "yes"
+        elif shell_method == "os":
+            if sb_ == "256":
+                jieguo = "no"
+            else:
+                jieguo = "yes"
         else:
             jieguo = "yes"
+
         if jieguo == "no":
             #进程不存在
             print str(GetNowTime()) + " 进程不存在尝试启动_name"
@@ -126,9 +137,8 @@ def Guard_name():
                 os_ = os.system(shell)
                 print GetNowTime() +" "+ str(os_)
             else:
-                subprocess.Popen('cd ' + cd,shell=True)
-                subprocess_ = subprocess.Popen(shell,shell=True)
-                subprocess_.communicate()
+                subprocess.call('cd ' + cd,shell=True)
+                subprocess_ = subprocess.call(shell,shell=True)
                 print GetNowTime() +" "+ str(subprocess_)
             time.sleep(yc)
         else:
@@ -187,9 +197,8 @@ def Guard_pid():
                 os_ = os.system(shell)
                 print GetNowTime() +" "+ str(os_)
             else:
-                subprocess.Popen('cd ' + cd,shell=True)
-                subprocess_ = subprocess.Popen(shell,shell=True)
-                subprocess_.communicate()
+                subprocess.call('cd ' + cd,shell=True)
+                subprocess_ = subprocess.call(shell,shell=True)
                 print GetNowTime() +" "+ str(subprocess_)
             time.sleep(yc)
         else:
